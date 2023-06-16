@@ -1,8 +1,11 @@
 import copy
-from dlgo.gotypes import Player, Point
+
 from dlgo.scoring import compute_game_result
+
 # tag::import_zobrist[]
 from dlgo import zobrist
+from dlgo.gotypes import Player, Point
+
 # end::import_zobrist[]
 
 __all__ = [
@@ -30,10 +33,11 @@ class GoString:
     def with_liberty(self, point):
         new_liberties = self.liberties | set([point])
         return GoString(self.color, self.stones, new_liberties)
-# <1> `stones` and `liberties` are now immutable `frozenset` instances
-# <2> The `without_liberty` methods replaces the previous `remove_liberty` method...
-# <3> ... and `with_liberty` replaces `add_liberty`.
-# end::fast_go_strings[]
+
+    # <1> `stones` and `liberties` are now immutable `frozenset` instances
+    # <2> The `without_liberty` methods replaces the previous `remove_liberty` method...
+    # <3> ... and `with_liberty` replaces `add_liberty`.
+    # end::fast_go_strings[]
 
     def merged_with(self, string):
         """Return a new string containing all stones in both strings."""
@@ -65,7 +69,8 @@ class Board:
         self.num_cols = num_cols
         self._grid = {}
         self._hash = zobrist.EMPTY_BOARD
-# end::init_zobrist[]
+
+    # end::init_zobrist[]
 
     def place_stone(self, player, point):
         assert self.is_on_grid(point)
@@ -89,7 +94,7 @@ class Board:
                 if neighbor_string not in adjacent_opposite_color:
                     adjacent_opposite_color.append(neighbor_string)
         new_string = GoString(player, [point], liberties)
-# tag::apply_zobrist[]
+        # tag::apply_zobrist[]
         new_string = GoString(player, [point], liberties)  # <1>
 
         for same_color_string in adjacent_same_color:  # <2>
@@ -105,15 +110,15 @@ class Board:
                 self._replace_string(other_color_string.without_liberty(point))
             else:
                 self._remove_string(other_color_string)  # <5>
-# <1> Until this line `place_stone` remains the same.
-# <2> You merge any adjacent strings of the same color.
-# <3> Next, you apply the hash code for this point and player
-# <4> Then you reduce liberties of any adjacent strings of the opposite color.
-# <5> If any opposite color strings now have zero liberties, remove them.
-# end::apply_zobrist[]
 
+    # <1> Until this line `place_stone` remains the same.
+    # <2> You merge any adjacent strings of the same color.
+    # <3> Next, you apply the hash code for this point and player
+    # <4> Then you reduce liberties of any adjacent strings of the opposite color.
+    # <5> If any opposite color strings now have zero liberties, remove them.
+    # end::apply_zobrist[]
 
-# tag::unapply_zobrist[]
+    # tag::unapply_zobrist[]
     def _replace_string(self, new_string):  # <1>
         for point in new_string.stones:
             self._grid[point] = new_string
@@ -129,10 +134,11 @@ class Board:
             self._grid[point] = None
 
             self._hash ^= zobrist.HASH_CODE[point, string.color]  # <3>
-# <1> This new helper method updates our Go board grid.
-# <2> Removing a string can create liberties for other strings.
-# <3> With Zobrist hashing, you need to unapply the hash for this move.
-# end::unapply_zobrist[]
+
+    # <1> This new helper method updates our Go board grid.
+    # <2> Removing a string can create liberties for other strings.
+    # <3> With Zobrist hashing, you need to unapply the hash for this move.
+    # end::unapply_zobrist[]
 
     def is_on_grid(self, point):
         return 1 <= point.row <= self.num_rows and \
@@ -174,9 +180,11 @@ class Board:
         copied._hash = self._hash
         return copied
 
-# tag::return_zobrist[]
+    # tag::return_zobrist[]
     def zobrist_hash(self):
         return self._hash
+
+
 # end::return_zobrist[]
 
 
@@ -184,6 +192,7 @@ class Move:
     """Any action a player can play on a turn.
     Exactly one of is_play, is_pass, is_resign will be set.
     """
+
     def __init__(self, point=None, is_pass=False, is_resign=False):
         assert (point is not None) ^ is_pass ^ is_resign
         self.point = point
@@ -225,7 +234,8 @@ class GameState:
                 previous.previous_states |
                 {(previous.next_player, previous.board.zobrist_hash())})
         self.last_move = move
-# end::init_state_zobrist[]
+
+    # end::init_state_zobrist[]
 
     def apply_move(self, move):
         """Return the new GameState after applying the move."""
@@ -255,7 +265,7 @@ class GameState:
     def situation(self):
         return (self.next_player, self.board)
 
-# tag::ko_zobrist[]
+    # tag::ko_zobrist[]
     def does_move_violate_ko(self, player, move):
         if not move.is_play:
             return False
@@ -263,7 +273,8 @@ class GameState:
         next_board.place_stone(player, move.point)
         next_situation = (player.other, next_board.zobrist_hash())
         return next_situation in self.previous_states
-# end::ko_zobrist[]
+
+    # end::ko_zobrist[]
 
     def is_valid_move(self, move):
         if self.is_over():
@@ -271,9 +282,9 @@ class GameState:
         if move.is_pass or move.is_resign:
             return True
         return (
-            self.board.get(move.point) is None and
-            not self.is_move_self_capture(self.next_player, move) and
-            not self.does_move_violate_ko(self.next_player, move))
+                self.board.get(move.point) is None and
+                not self.is_move_self_capture(self.next_player, move) and
+                not self.does_move_violate_ko(self.next_player, move))
 
     def is_over(self):
         if self.last_move is None:

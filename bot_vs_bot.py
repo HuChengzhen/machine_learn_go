@@ -1,9 +1,11 @@
 import time
 
-from dlgo.agent.naive import RandomBot
-from dlgo import gotypes
 from dlgo import goboard_slow as goboard
+from dlgo import gotypes
+from dlgo.agent.naive import RandomBot
 from dlgo.utils import print_board, print_move
+
+
 def main():
     board_size = 9
     game = goboard.GameState.new_game(board_size)
