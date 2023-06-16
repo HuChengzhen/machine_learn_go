@@ -1,10 +1,11 @@
 import copy
-from gotypes import Point
+
 from dlgo.gotypes import Player
+from dlgo.gotypes import Point
 
 
 class Move():
-    def __init__(self, point: None, is_pass: False, is_resign=False):
+    def __init__(self, point=None, is_pass=False, is_resign=False):
         assert (point is not None) or is_pass or is_resign
         self.point = point
         self.is_play = (self.point is not None)
@@ -93,7 +94,7 @@ class Board():
         for new_string_point in new_string.stones:
             self._grid[new_string_point] = new_string
         for other_color_string in adjacent_opposit_color:
-            other_color_string.remove_libery(point)
+            other_color_string.remove_liberty(point)
         for other_color_string in adjacent_opposit_color:
             if other_color_string.num_liberties == 0:
                 self._remove_string(other_color_string)
